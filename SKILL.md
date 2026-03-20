@@ -59,11 +59,13 @@ After enriching all individual items, the pipeline generates a high-level summar
 
 - **Tooling**: The Agent must synthesize the enriched data into a concise summary (`overview`) and 3 highlight points (`keypoints`) for each section.
 - **Data Structure**: Use `OverviewSchema` from `scripts/core/schema.py`.
+- **Storage**: Save the generated overview as a JSON file at `{{PARSED_RESULTS_DIR}}/overviews/daily_overview.json`. Ensure the directory exists.
 - **Timing**: This occurs after individual item enrichment but before final report generation.
 
 ### 5. Report Generation & Email Dispatch
 
-- Invoke `scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.
+- **Data Preparation**: `scripts/email_generator.py` (via `prepare_email_data`) automatically loads `daily_overview.json` from the `overviews/` directory and passes it to the Jinja2 template.
+- **Rendering**: Invoke `scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.
 - **PDF Conversion**: Use `scripts/pdf_generator.py` to convert the HTML report into a PDF for archiving and attachment.
 - **Dispatch**: Send the final report via `scripts/email_sender.py`, which automatically includes the PDF as an attachment.
 

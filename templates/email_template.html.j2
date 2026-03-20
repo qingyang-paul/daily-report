@@ -33,6 +33,26 @@
     </div>
     {% endif %}
     {% endmacro %}
+
+    {% macro render_section_overview(overview_data) %}
+    {% if overview_data %}
+    <div class="section-overview" style="margin-bottom: 30px; padding: 20px; background-color: #fffaf0; border: 2px dashed #fbd38d; border-radius: 12px; position: relative;">
+        <div style="position: absolute; top: -14px; left: 16px; background-color: #fbd38d; color: #9c4221; padding: 2px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <span style="vertical-align: middle;">✨</span> AI Overview
+        </div>
+        <div style="font-size: 0.98rem; color: #7b341e; line-height: 1.6; margin-bottom: 12px; font-weight: 500; margin-top: 5px;">
+            {{ overview_data.overview }}
+        </div>
+        {% if overview_data.keypoints %}
+        <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem; color: #9c4221;">
+            {% for kp in overview_data.keypoints %}
+            <li style="margin-bottom: 6px;">{{ kp }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endmacro %}
     {% set svg_star %}
     <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" style="fill: #57606a;"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
     {% endset %}
@@ -334,9 +354,13 @@
         </div>
 
         <div class="content">
+            {# --- REPORT OVERVIEW --- #}
+            {{ render_section_overview(report_overview) }}
+
             {# --- GITHUB TRENDING --- #}
             {% if github_trending %}
             <div class="section-title" style="color: #24292f; border-bottom: 2px solid #e1e8ed;">GitHub Trending Today</div>
+            {{ render_section_overview(github_trending_overview) }}
             {% for repo in github_trending %}
             <div class="card category-github" style="border: 1px solid #d0d7de; border-radius: 6px; position: relative;">
                 <div class="github-stats-tr">
@@ -386,7 +410,8 @@
 
             {# --- HUGGINGFACE PAPERS --- #}
             {% if huggingface %}
-            <div class="section-title" style="color: #854d0e; border-bottom: 2px solid #fde68a;">HuggingFace Daily Papers</div>
+            <div class="section-title" style="color: #854d0e; border-bottom: 2px solid #e1e8ed;">HuggingFace Daily Papers</div>
+            {{ render_section_overview(huggingface_daily_papers_overview) }}
             {% for paper in huggingface %}
             <div class="card category-hf" style="border: 1px solid #e1e8ed; border-radius: 8px; padding: 16px;">
                 <div class="card-header" style="margin-bottom: 12px; overflow: hidden;">
@@ -468,6 +493,7 @@
             {# --- OPENROUTER LLMS --- #}
             {% if openrouter_llms %}
             <div class="section-title" style="color: #4338ca;">OpenRouter: Latest LLMs</div>
+            {{ render_section_overview(openrouter_latest_llms_overview) }}
             {% for model in openrouter_llms %}
             <div class="card category-or">
                 <div class="card-header">
@@ -496,6 +522,7 @@
             {# --- OPENROUTER APPS --- #}
             {% if openrouter_apps %}
             <div class="section-title" style="color: #4338ca;">OpenRouter: Trending Apps</div>
+            {{ render_section_overview(openrouter_trending_apps_overview) }}
             <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
                 {% for app in openrouter_apps %}
                 <div class="card category-or" style="flex: 1 1 250px; margin-bottom: 0;">
@@ -528,6 +555,7 @@
             {# --- PRODUCT HUNT --- #}
             {% if product_hunt %}
             <div class="section-title" style="color: #c2410c;">Product Hunt</div>
+            {{ render_section_overview(producthunt_apps_overview) }}
             {% for app in product_hunt %}
             <div class="card category-ph">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
@@ -584,6 +612,7 @@
             {# --- HACKER NEWS --- #}
             {% if hacker_news %}
             <div class="section-title" style="color: #b45309;">Hacker News</div>
+            {{ render_section_overview(hackernews_post_overview) }}
             {% for story in hacker_news %}
             <div class="card category-hn">
                 <h3 class="card-title">

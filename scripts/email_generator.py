@@ -52,12 +52,16 @@ def get_latest_file(directory, pattern):
     files.sort(reverse=True)
     return os.path.join(directory, files[0])
 
-def load_json(filepath):
+def load_json(filepath, default_value=None):
     if not filepath or not os.path.exists(filepath):
-        logger.warning(f"File not found: {filepath}")
-        return []
-    with open(filepath, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        logger.debug(f"File not found: {filepath}")
+        return default_value if default_value is not None else []
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading {filepath}: {e}")
+        return default_value if default_value is not None else []
 
 def format_k(value):
     try:
@@ -98,8 +102,12 @@ def prepare_email_data():
     # Updated path for Hacker News
     hn_data = load_json(config.PARSED_DATA_DIR / "hacker_news" / "hn_daily_parsed.json")
 
+    # Load AI Overview
+    overview_path = config.PARSED_DATA_DIR / "overviews" / "daily_overview.json"
+    overview_data = load_json(overview_path, default_value={})
+
     # Select latest 5 OpenRouter LLMs
-    or_llms = sorted(or_models, key=lambda x: str(x.get('created', '')), reverse=True)[:5] if or_models else []
+    or_llms = sorted(or_models, key=lambda x: str(x.get('created', '')), reverse=True)[:5] if isinstance(or_models, list) else []
 
     # Mapping limits from config
     github_limit = config.SECTION_LIMITS.get("github", 10)
@@ -111,6 +119,13 @@ def prepare_email_data():
 
     return {
         "date": datetime.now().strftime("%B %d, %Y"),
+        "report_overview": overview_data.get("report_overview"),
+        "github_trending_overview": overview_data.get("github_trending_overview"),
+        "huggingface_daily_papers_overview": overview_data.get("huggingface_daily_papers_overview"),
+        "openrouter_latest_llms_overview": overview_data.get("openrouter_latest_llms_overview"),
+        "openrouter_trending_apps_overview": overview_data.get("openrouter_trending_apps_overview"),
+        "producthunt_apps_overview": overview_data.get("producthunt_apps_overview"),
+        "hackernews_post_overview": overview_data.get("hackernews_post_overview"),
         "github_trending": github_data[:github_limit] if isinstance(github_data, list) else [],
         "huggingface": hf_papers[:hf_limit] if isinstance(hf_papers, list) else [],
         "arxiv_papers": [],
