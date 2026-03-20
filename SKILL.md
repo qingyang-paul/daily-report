@@ -14,11 +14,19 @@ This skill manages the end-to-end process of creating high-value daily reports o
 To produce a curated daily report that synthesizes data from global tech sources, specifically highlighting the commercial impact and practical utility of AI developments.
 
 ## Key Data Sources
+
 - **GitHub Trending**: Emerging AI repositories and frameworks.
 - **Hugging Face Daily Papers**: Cutting-edge AI research and model drops.
 - **OpenRouter**: Latest LLMs and trending AI-powered applications.
 - **Product Hunt**: New AI product launches and startup activity.
 - **Hacker News**: High-signal technical and industry discussions.
+
+## Execution & Communication Rules
+
+- **Progress Updates**: After each step in the `Standard Workflow` below, the Agent **MUST** notify the user with a brief message explaining:
+  - What was just successfully executed.
+  - What the next step is and what it will do.
+- **Intervention**: This allows the user to monitor progress and intervene if necessary before the next script runs.
 
 ## Standard Workflow
 
