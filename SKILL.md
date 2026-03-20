@@ -11,6 +11,7 @@ description: |
 This skill manages the end-to-end process of creating high-value daily reports on AI industry shifts and innovations.
 
 ## Core Objective
+
 To produce a curated daily report that synthesizes data from global tech sources, specifically highlighting the commercial impact and practical utility of AI developments.
 
 ## Key Data Sources
@@ -31,34 +32,43 @@ To produce a curated daily report that synthesizes data from global tech sources
 ## Standard Workflow
 
 ### 1. Project Initialization & Environment Check
+
 - Verify that the workspace is correctly configured.
 - Ensure all required API keys and path constants are set in `.env.local` (located in the project root).
 - Ensure `scripts/core/config.py` is operational for unified path management.
 
 ### 2. Data Collection & Transformation
+
 - Execute scripts within the `scripts/` directory to fetch raw data from all enabled sources.
 - Scripts generate standardized JSON datasets in the workspace's designated data directories.
 - **Primary Tool**: `python scripts/fetch_all.py` (Orchestrates the full fetch-and-parse sequence).
 
 ### 3. AI-Driven Content Enrichment
-For each collected item, identify AI-centric fields as defined in `scripts/core/schema.py` (e.g., `ai_summary`, `ai_keywords`, `ai_comment_summary`). 
+
+For each collected item, identify AI-centric fields as defined in `scripts/core/schema.py` (e.g., `ai_summary`, `ai_keywords`, `ai_comment_summary`).
 The Agent must supplement these fields using internet search or internal capabilities:
+
+- **Partial Enrichment**: Only the top items defined by the limits in `.env.local` (e.g., `GITHUB_TRENDING_TODAY_LIMIT`) need to be enriched. Do not enrich all fetched items, as only these top items will be rendered in the final report.
 - **Focus**: Practical utility, real-world problems solved, and commercial potential.
 - **Constraint**: Do not over-index on deep technical implementation details; prioritize "Industry Trends" and "Business Value".
 - **Reference**: Follow the Pydantic models in `scripts/core/schema.py` for exact data structures.
 
 ### 4. Multi-Section Overview Generation
-After enriching all individual items, the pipeline generates a high-level summary for each major section and for the entire report. 
+
+After enriching all individual items, the pipeline generates a high-level summary for each major section and for the entire report.
+
 - **Tooling**: The Agent must synthesize the enriched data into a concise summary (`overview`) and 3 highlight points (`keypoints`) for each section.
 - **Data Structure**: Use `OverviewSchema` from `scripts/core/schema.py`.
 - **Timing**: This occurs after individual item enrichment but before final report generation.
 
 ### 5. Report Generation & Email Dispatch
+
 - Invoke `scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.
 - **PDF Conversion**: Use `scripts/pdf_generator.py` to convert the HTML report into a PDF for archiving and attachment.
 - **Dispatch**: Send the final report via `scripts/email_sender.py`, which automatically includes the PDF as an attachment.
 
 ## Usage Examples
+
 ```bash
 # Full pipeline sequence
 python scripts/fetch_all.py
@@ -69,10 +79,12 @@ python scripts/email_sender.py
 ```
 
 # Individual section refresh
+
 python scripts/github_trending.py --since daily
 python scripts/hacker_news.py --timeframe daily
 
 # Verify system health
+
 python scripts/health_check.py
 
 
