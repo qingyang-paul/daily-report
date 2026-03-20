@@ -53,8 +53,12 @@ To produce a curated daily report that synthesizes data from global tech sources
   - `openrouter/openrouter_apps_{timestamp}_parsed.json`
   - `product_hunt/product_hunt_{period}_{timestamp}_parsed.json`
   - `hacker_news/hn_{timeframe}_{timestamp}_parsed.json`
-- **Focus**: Practical utility, real-world problems solved, and commercial potential.
-- **Constraint**: Do not over-index on technical implementation; prioritize "Industry Trends" and "Business Value".
+- **Active Research (NO Placeholders)**: The Agent **MUST NOT** use generic placeholder text or hallucinate content. Instead, it must utilize search tools to find real-world materials, documentation, and user feedback for each item.
+- **In-Depth Analysis**: Every enriched item must explain:
+  - **Problem Solved**: What specific pain point or challenge does this project address?
+  - **Highlights**: What are the standout features or technical innovations?
+  - **Value**: What is the practical business or technical value for the reader?
+- **Goal**: Provide high-quality insights that help readers deeply understand the project beyond its title and tagline.
 - **Reference**: Follow the Pydantic models in `scripts/core/schema.py` for exact data structures.
 
 ### 4. Enrichment Validation
