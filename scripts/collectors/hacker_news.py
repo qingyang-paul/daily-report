@@ -147,6 +147,10 @@ def hacker_news_parse_data(file_path: str) -> List[HackerNewsStorySchema]:
     else:
         raise ValueError(f"Unsupported file format: {path.suffix}")
         
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("hacker_news", len(results))
+    results = results[:limit]
+
     # Save parsed data to JSON for consistency
     output_path = HN_PARSED_DATA_DIR / f"{path.stem}_parsed.json"
     output_path.write_text(json.dumps([r.model_dump() for r in results], indent=2, ensure_ascii=False, default=str), encoding='utf-8')

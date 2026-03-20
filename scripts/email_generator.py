@@ -128,17 +128,25 @@ def prepare_email_data():
         "hackernews_post_overview": overview_data.get("hackernews_post_overview"),
         "github_trending": github_data[:github_limit] if isinstance(github_data, list) else [],
         "huggingface": hf_papers[:hf_limit] if isinstance(hf_papers, list) else [],
-        "arxiv_papers": [],
         "openrouter_llms": or_llms[:or_llm_limit],
         "openrouter_apps": or_apps.get('trending', [])[:or_app_limit] if isinstance(or_apps, dict) else [],
         "product_hunt": ph_data[:ph_limit] if isinstance(ph_data, list) else [],
         "hacker_news": hn_data[:hn_limit] if isinstance(hn_data, list) else []
     }
 
+from core import config, validator
+
+# ... (existing code)
+
 def generate_email_html():
     """Main entry point to generate and save email HTML."""
     data = prepare_email_data()
     
+    # Validate AI enrichment before proceeding
+    if not validator.validate_ai_fields(data):
+        logger.error("Email generation aborted due to missing AI enrichment.")
+        return None
+        
     logger.info("Rendering email template...")
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
     env.filters['format_k'] = format_k

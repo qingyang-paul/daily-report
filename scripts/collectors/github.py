@@ -196,6 +196,10 @@ def github_trending_parse_html(html_path: Path) -> Path:
         except Exception as e:
             logger.error(f"Failed to validate GithubTrendingSchema for {owner}/{name}: {e}")
 
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("github", len(projects_data))
+    projects_data = projects_data[:limit]
+
     # Generate JSON
     output_path = GITHUB_TRENDING_PARSED_DATA_DIR / f"trending_{since}.json"
     output_path.write_text(json.dumps([p.model_dump() for p in projects_data], indent=2, ensure_ascii=False), encoding='utf-8')

@@ -1,5 +1,6 @@
 """arXiv Data Collector.
 
+[TEMPORARILY UNUSED] This collector is currently disabled in the main pipeline.
 Fetches and parses scientific papers from arXiv based on search queries.
 """
 import os
@@ -159,17 +160,6 @@ def arxiv_fetch_papers(timeframe: str, proxies: dict = None) -> str:
             else: os.environ.pop("HTTP_PROXY", None)
             if old_https is not None: os.environ["HTTPS_PROXY"] = old_https
             else: os.environ.pop("HTTPS_PROXY", None)
-        raw_dict = {}
-        for k, v in vars(r).items():
-            if k.startswith('_'):
-                continue
-            if isinstance(v, datetime):
-                raw_dict[k] = v.isoformat()
-            elif isinstance(v, list) and len(v) > 0 and hasattr(v[0], '__dict__'):
-                raw_dict[k] = [vars(item) for item in v]
-            else:
-                raw_dict[k] = v
-        raw_results.append(raw_dict)
         
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"arxiv_{timeframe}_{timestamp}.json"
@@ -224,6 +214,10 @@ def arxiv_parse_data(file_path: str) -> list:
         except Exception as e:
             logger.error(f"Failed to validate ArxivPaperSchema for {short_id}: {e}")
             
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("arxiv", len(results))
+    results = results[:limit]
+
     output_path = ARXIV_PARSED_DATA_DIR / f"{path.stem}_parsed.json"
     output_path.write_text(json.dumps([p.model_dump() for p in results], indent=2, ensure_ascii=False, default=str), encoding='utf-8')
     logger.info(f"Saved parsed arXiv JSON to {output_path}")

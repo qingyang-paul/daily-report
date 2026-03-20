@@ -263,6 +263,10 @@ def product_hunt_parse_data(json_file_path: str) -> list:
         except Exception as e:
             logger.error(f"Failed to validate schema for Product Hunt: {e}")
             
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("product_hunt", len(parsed_posts))
+    parsed_posts = parsed_posts[:limit]
+
     output_path = PH_PARSED_DATA_DIR / f"{Path(json_file_path).stem}_parsed.json"
     output_path.write_text(json.dumps([p.model_dump() for p in parsed_posts], indent=2, ensure_ascii=False, default=str), encoding='utf-8')
     logger.info(f"Saved parsed Product Hunt JSON to {output_path}")

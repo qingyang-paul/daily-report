@@ -43,17 +43,28 @@ To produce a curated daily report that synthesizes data from global tech sources
 - Scripts generate standardized JSON datasets in the workspace's designated data directories.
 - **Primary Tool**: `python scripts/fetch_all.py` (Orchestrates the full fetch-and-parse sequence).
 
-### 3. AI-Driven Content Enrichment
+### 3. AI Based Content Enrichment
 
-For each collected item, identify AI-centric fields as defined in `scripts/core/schema.py` (e.g., `ai_summary`, `ai_keywords`, `ai_comment_summary`).
-The Agent must supplement these fields using internet search or internal capabilities:
-
-- **Partial Enrichment**: Only the top items defined by the limits in `.env.local` (e.g., `GITHUB_TRENDING_TODAY_LIMIT`) need to be enriched. Do not enrich all fetched items, as only these top items will be rendered in the final report.
+- **Full Enrichment**: The Agent **MUST** enrich ALL items found within the parsed JSON files. Since the data is already truncated to the limits (defined in `.env.local`) during the parsing stage, every single item in the `parsed_results/` directory is intended for the final report.
+- **Explicit File Paths**: Enrichment must be applied to the following files (relative to the configured `PARSED_DATA_DIR`):
+  - `github/trending_{period}.json`
+  - `huggingface/huggingface_{period}_{timestamp}_parsed.json`
+  - `openrouter/openrouter_llms_{timestamp}_parsed.json`
+  - `openrouter/openrouter_apps_{timestamp}_parsed.json`
+  - `product_hunt/product_hunt_{period}_{timestamp}_parsed.json`
+  - `hacker_news/hn_{timeframe}_{timestamp}_parsed.json`
 - **Focus**: Practical utility, real-world problems solved, and commercial potential.
-- **Constraint**: Do not over-index on deep technical implementation details; prioritize "Industry Trends" and "Business Value".
+- **Constraint**: Do not over-index on technical implementation; prioritize "Industry Trends" and "Business Value".
 - **Reference**: Follow the Pydantic models in `scripts/core/schema.py` for exact data structures.
 
-### 4. Multi-Section Overview Generation
+### 4. Enrichment Validation
+
+Before proceeding to overview generation or final reporting, the Agent must verify the integrity of the AI-enhanced data.
+
+- **Integrity Check**: Run `scripts/core/validator.py` (or ensure the logic is invoked) to confirm that no `ai_summary`, `ai_keywords`, or `SectionOverview` fields are empty.
+- **Mandatory**: Email generation via `scripts/email_generator.py` will automatically abort if this validation fails.
+
+### 5. Multi-Section Overview Generation
 
 After enriching all individual items, the pipeline generates a high-level summary for each major section and for the entire report.
 
@@ -62,7 +73,7 @@ After enriching all individual items, the pipeline generates a high-level summar
 - **Storage**: Save the generated overview as a JSON file at `{{PARSED_RESULTS_DIR}}/overviews/daily_overview.json`. Ensure the directory exists.
 - **Timing**: This occurs after individual item enrichment but before final report generation.
 
-### 5. Report Generation & Email Dispatch
+### 6. Report Generation & Email Dispatch
 
 - **Data Preparation**: `scripts/email_generator.py` (via `prepare_email_data`) automatically loads `daily_overview.json` from the `overviews/` directory and passes it to the Jinja2 template.
 - **Rendering**: Invoke `scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.

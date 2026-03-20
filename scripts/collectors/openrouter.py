@@ -173,6 +173,10 @@ def openrouter_parse_data(file_path: str) -> list:
         except Exception as e:
             logger.error(f"Failed to validate OpenRouterLLMSchema for: {name}, error: {e}")
             
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("openrouter_llms", len(results))
+    results = results[:limit]
+
     output_path = OR_PARSED_DATA_DIR / f"{path.stem}_parsed.json"
     output_path.write_text(json.dumps([p.model_dump() for p in results], indent=2, ensure_ascii=False, default=str), encoding='utf-8')
     return results
@@ -340,6 +344,11 @@ def openrouter_apps_parse_data(file_path: str) -> dict:
                     except Exception:
                         pass
             
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("openrouter_apps", len(global_ranking))
+    trending = trending[:limit]
+    global_ranking = global_ranking[:limit]
+
     result_dict = {"global_ranking": global_ranking, "trending": trending}
     output_path = OR_PARSED_DATA_DIR / f"{path.stem}_parsed.json"
     

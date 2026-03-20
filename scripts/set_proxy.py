@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Utility to set proxy environment variables based on configuration.
 
 Usage:

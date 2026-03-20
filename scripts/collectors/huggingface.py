@@ -257,6 +257,10 @@ def huggingface_parse_data(file_path: str) -> list:
         except Exception as e:
             logger.error(f"Failed to validate HuggingFacePaperSchema for {paper_id}: {e}")
             
+    # Truncate results based on SECTION_LIMITS
+    limit = config.SECTION_LIMITS.get("huggingface", len(results))
+    results = results[:limit]
+
     output_path = HF_PARSED_DATA_DIR / f"{path.stem}_parsed.json"
     output_path.write_text(json.dumps([p.model_dump() for p in results], indent=2, ensure_ascii=False, default=str), encoding='utf-8')
     logger.info(f"Saved parsed Huggingface JSON to {output_path}")
