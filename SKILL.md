@@ -39,8 +39,14 @@ The Agent must supplement these fields using internet search or internal capabil
 - **Constraint**: Do not over-index on deep technical implementation details; prioritize "Industry Trends" and "Business Value".
 - **Reference**: Follow the Pydantic models in `scripts/core/schema.py` for exact data structures.
 
-### 4. Report Generation & Email Dispatch
-- Invoke `scripts/email_generator.py` to synthesize the enriched data into a premium HTML report.
+### 4. Multi-Section Overview Generation
+After enriching all individual items, the pipeline generates a high-level summary for each major section and for the entire report. 
+- **Tooling**: The Agent must synthesize the enriched data into a concise summary (`overview`) and 3 highlight points (`keypoints`) for each section.
+- **Data Structure**: Use `OverviewSchema` from `scripts/core/schema.py`.
+- **Timing**: This occurs after individual item enrichment but before final report generation.
+
+### 5. Report Generation & Email Dispatch
+- Invoke `scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.
 - **PDF Conversion**: Use `scripts/pdf_generator.py` to convert the HTML report into a PDF for archiving and attachment.
 - **Dispatch**: Send the final report via `scripts/email_sender.py`, which automatically includes the PDF as an attachment.
 

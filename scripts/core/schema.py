@@ -120,3 +120,16 @@ class HackerNewsStorySchema(BaseModel):
     ai_keywords: List[str] = Field(default_factory=list)
     ai_summary: str = ""
     ai_comment_summary: List[str] = Field(default_factory=list)
+
+class SectionOverviewSchema(BaseModel):
+    overview: str
+    keypoints: List[str]
+
+class OverviewSchema(BaseModel):
+    report_overview: SectionOverviewSchema
+    github_trending_overview: SectionOverviewSchema
+    huggingface_daily_papers_overview: SectionOverviewSchema
+    openrouter_latest_llms_overview: SectionOverviewSchema
+    openrouter_trending_apps_overview: SectionOverviewSchema
+    producthunt_apps_overview: SectionOverviewSchema
+    hackernews_post_overview: SectionOverviewSchema
