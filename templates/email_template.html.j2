@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Insights</title>
+    {% macro ai_content_block(item) %}
+    {% if item.ai_keywords or item.ai_summary or item.ai_comment_summary %}
+    <div class="ai-section" style="margin-top: 25px; margin-bottom: 5px; padding: 12px; background-color: #fffaf0; border-left: 3px solid #fbd38d; border-radius: 8px;">
+        {% if item.ai_keywords %}
+        <div style="margin-bottom: 8px;">
+            {% for kw in item.ai_keywords %}
+            <span style="display: inline-block; background-color: #feebc8; color: #9c4221; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-right: 5px; margin-bottom: 5px;">#{{ kw }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if item.ai_summary %}
+        <div style="font-size: 0.88rem; color: #7b341e; line-height: 1.5; margin-bottom: 8px;">
+            <strong style="color: #9c4221;">AI Summary:</strong> {{ item.ai_summary }}
+        </div>
+        {% endif %}
+        
+        {% if item.ai_comment_summary %}
+        <div style="font-size: 0.85rem; color: #9c4221; border-top: 1px dashed #fbd38d; padding-top: 8px;">
+            <ul style="margin: 0; padding-left: 20px;">
+                {% for c_sum in item.ai_comment_summary %}
+                <li style="margin-bottom: 4px;">{{ c_sum }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endmacro %}
+    {% set svg_star %}
+    <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" style="fill: #57606a;"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694Z"></path></svg>
+    {% endset %}
+    {% set svg_fork %}
+    <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" style="fill: #57606a;"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>
+    {% endset %}
+    {% set svg_trend %}
+    <svg class="octicon" height="16" viewBox="0 0 16 16" width="16" style="fill: #1a7f37;"><path d="M1.5 1.75V13.5h12.25a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75a.75.75 0 0 1 1.5 0Zm13.5 2.5v5a.75.75 0 0 1-1.5 0V5.81l-4.47 4.47a.75.75 0 0 1-1.06 0L5.5 7.81 1.28 12.03a.75.75 0 1 1-1.06-1.06l4.75-4.75a.75.75 0 0 1 1.06 0L8.5 8.69l3.94-3.94H10.25a.75.75 0 0 1 0-1.5h4a.75.75 0 0 1 .75.75Z"></path></svg>
+    {% endset %}
+    {% set svg_gh_hf %}
+    <svg aria-hidden="true" focusable="false" role="img" width="16" height="16" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 250" style="vertical-align: middle; fill: #57606a;"><path d="M128.001 0C57.317 0 0 57.307 0 128.001c0 56.554 36.676 104.535 87.535 121.46c6.397 1.185 8.746-2.777 8.746-6.158c0-3.052-.12-13.135-.174-23.83c-35.61 7.742-43.124-15.103-43.124-15.103c-5.823-14.795-14.213-18.73-14.213-18.73c-11.613-7.944.876-7.78.876-7.78c12.853.902 19.621 13.19 19.621 13.19c11.417 19.568 29.945 13.911 37.249 10.64c1.149-8.272 4.466-13.92 8.127-17.116c-28.431-3.236-58.318-14.212-58.318-63.258c0-13.975 5-25.394 13.188-34.358c-1.329-3.224-5.71-16.242 1.24-33.874c0 0 10.749-3.44 35.21 13.121c10.21-2.836 21.16-4.258 32.038-4.307c10.878.049 21.837 1.47 32.066 4.307c24.431-16.56 35.165-13.12 35.165-13.12c6.967 17.63 2.584 30.65 1.255 33.873c8.207 8.964 13.173 20.383 13.173 34.358c0 49.163-29.944 59.988-58.447 63.157c4.591 3.972 8.682 11.762 8.682 23.704c0 17.126-.148 30.91-.148 35.126c0 3.407 2.304 7.398 8.792 6.14C219.37 232.5 256 184.537 256 128.002C256 57.307 198.691 0 128.001 0zm-80.06 182.34c-.282.636-1.283.827-2.194.39c-.929-.417-1.45-1.284-1.15-1.922c.276-.655 1.279-.838 2.205-.399c.93.418 1.46 1.293 1.139 1.931zm6.296 5.618c-.61.566-1.804.303-2.614-.591c-.837-.892-.994-2.086-.375-2.66c.63-.566 1.787-.301 2.626.591c.838.903 1 2.088.363 2.66zm4.32 7.188c-.785.545-2.067.034-2.86-1.104c-.784-1.138-.784-2.503.017-3.05c.795-.547 2.058-.055 2.861 1.075c.782 1.157.782 2.522-.019 3.08zm7.304 8.325c-.701.774-2.196.566-3.29-.49c-1.119-1.032-1.43-2.496-.726-3.27c.71-.776 2.213-.558 3.315.49c1.11 1.03 1.45 2.505.701 3.27zm9.442 2.81c-.31 1.003-1.75 1.459-3.199 1.033c-1.448-.439-2.395-1.613-2.103-2.626c.301-1.01 1.747-1.484 3.207-1.028c1.446.436 2.396 1.602 2.095 2.622zm10.744 1.193c.036 1.055-1.193 1.93-2.715 1.95c-1.53.034-2.769-.82-2.786-1.86c0-1.065 1.202-1.932 2.733-1.958c1.522-.03 2.768.818 2.768 1.868zm10.555-.405c.182 1.03-.875 2.088-2.387 2.37c-1.485.271-2.861-.365-3.05-1.386c-.184-1.056.893-2.114 2.376-2.387c1.514-.263 2.868.356 3.061 1.403z"></path></svg>
+    {% endset %}
+    {% set svg_star_hf %}
+    <svg aria-hidden="true" fill="none" focusable="false" role="img" width="14" height="14" preserveAspectRatio="xMidYMid meet" viewBox="0 0 12 12" style="vertical-align: middle; margin-right: 2px;"><path fill="#FFA51E" stroke="#FFA51E" stroke-width=".6" d="m6.6 2.6.3 1c.2.4.6.8 1.2.8h1c.6 0 .8.8.3 1.1l-.8.6c-.4.3-.6.9-.4 1.4l.3 1c.2.5-.5 1-1 .6l-.8-.5a1 1 0 0 0-1.4 0l-.8.5a.6.6 0 0 1-1-.7l.3-1c.2-.4 0-1-.4-1.3l-.8-.6a.6.6 0 0 1 .3-1.1h1c.6 0 1-.4 1.2-.9l.3-.9c.2-.6 1-.6 1.2 0Z"></path></svg>
+    {% endset %}
+    {% set svg_comment_solid %}
+    <svg width="14" height="14" viewBox="0 0 16 16" style="fill: currentColor; vertical-align: text-bottom; margin-right: 4px;"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 13.25 12H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 13.543V12H2.75A1.75 1.75 0 0 1 1 10.25Z"></path></svg>
+    {% endset %}
+    {% set svg_vote_solid %}
+    <svg width="12" height="12" viewBox="0 0 16 16" style="fill: currentColor; vertical-align: middle; margin-right: 4px;"><path d="M8 2l6 10H2l6-10z"></path></svg>
+    {% endset %}
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .header {
+            background-color: #1a2b4b;
+            color: white;
+            text-align: center;
+            padding: 0;
+        }
+        .header img {
+            width: 100%;
+            display: block;
+        }
+        .content {
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            transition: transform 0.2s;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            color: #1a2b4b;
+        }
+        .card-title a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .card-title a:hover {
+            color: #3b82f6;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .summary {
+            font-size: 0.9rem;
+            color: #555;
+            margin: 10px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .footer-meta {
+            font-size: 0.8rem;
+            color: #888;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .stat-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* Category Specific Styles */
+        .category-github { position: relative; }
+        .category-arxiv { }
+        .category-hf { }
+        .category-or { }
+        .category-ph { }
+        .category-hn { }
+
+        .hf-btn {
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
+            padding: 0 10px;
+            background-color: #ffffff;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            color: #24292f;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .hf-btn:hover {
+            background-color: #f6f8fa;
+        }
+        .hf-star-badge {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+            color: #24292f;
+        }
+
+        .badge-github { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-arxiv { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-hf { 
+            background-color: #e0f2fe; 
+            color: #0369a1; 
+            border: 1px solid #bae6fd;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .org-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e6f7ff;
+            color: #0050b3;
+            border: 1px solid #91d5ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            margin-top: 4px;
+        }
+        .org-avatar {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .badge-or { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-ph { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-hn { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        .github-stats-tr {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #1a7f37;
+            font-weight: 600;
+        }
+        .github-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap; /* Ensure it wraps if content is too wide */
+            gap: 10px;
+            border-top: 1px solid #f6f8fa;
+            padding-top: 10px;
+        }
+        .github-stats-bottom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: #57606a;
+        }
+        .github-avatar-group {
+            display: flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+        .github-avatar-small {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            margin-left: -8px;
+            background-color: #f6f8fa;
+        }
+        .github-avatar-small:first-child {
+            margin-left: 0;
+        }
+        .github-main-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid rgba(31,35,40,0.15);
+        }
+        .octicon {
+            fill: currentColor;
+            vertical-align: text-bottom;
+            display: inline-block;
+        }
+
+        .author-list {
+            font-style: italic;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .comment-snippet {
+            background-color: #f8fafc;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-left: 2px solid #cbd5e1;
+            margin-top: 10px;
+        }
+        .comment-reply {
+            margin-left: 15px;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 12px;
+            margin-top: 15px;
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+        .footer-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="padding: 40px 20px; background: linear-gradient(135deg, #1a2b4b 0%, #0d1b31 100%);">
+                <h1 style="margin: 0; font-size: 24px;">DAILY INSIGHTS</h1>
+                <p style="margin: 5px 0 0 0; opacity: 0.8; font-size: 14px;">{{ date }}</p>
+            </div>
+        </div>
+
+        <div class="content">
+            {# --- GITHUB TRENDING --- #}
+            {% if github_trending %}
+            <div class="section-title" style="color: #24292f; border-bottom: 2px solid #e1e8ed;">GitHub Trending Today</div>
+            {% for repo in github_trending %}
+            <div class="card category-github" style="border: 1px solid #d0d7de; border-radius: 6px; position: relative;">
+                <div class="github-stats-tr">
+                    {{ svg_trend | safe }}
+                    {{ repo.stars_today | format_k }}
+                </div>
+                <div class="card-header" style="margin-right: 100px; margin-bottom: 5px;">
+                    <h3 class="card-title" style="font-size: 1.125rem; display: flex; align-items: center; line-height: 1.2;">
+                        <img src="https://github.com/{{ repo.owner }}.png?size=40" class="github-main-avatar" alt="">
+                        <a href="{{ repo.url }}" style="color: #0284c7; text-decoration: none;">
+                            <span style="font-weight: 400;">{{ repo.owner }} /</span> <span style="font-weight: 600;">{{ repo.name }}</span>
+                        </a>
+                    </h3>
+                </div>
+                <div class="summary" style="margin-right: 100px; color: #57606a;">{{ repo.description }}</div>
+
+                {{ ai_content_block(repo) }}
+
+                <div class="github-footer" style="padding-top: 12px; margin-top: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div class="github-lang">
+                        <span class="tag" style="background-color: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; font-weight: 500; margin-bottom: 0;">
+                            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #38bdf8; margin-right: 4px; vertical-align: middle;"></span>
+                            {{ repo.language }}
+                        </span>
+                    </div>
+                    <div class="github-stats-bottom">
+                        <span class="stat-item" style="font-weight: 600;">
+                            {{ svg_star | safe }}
+                            {{ repo.stars | format_k }}
+                        </span>
+                        <span class="stat-item">
+                            {{ svg_fork | safe }}
+                            {{ repo.forks | format_k }}
+                        </span>
+                        {% if repo.built_by %}
+                        <div class="github-avatar-group">
+                            {% for avatar in repo.built_by[:5] %}
+                            <img src="{{ avatar }}" class="github-avatar-small" alt="">
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {# --- HUGGINGFACE PAPERS --- #}
+            {% if huggingface %}
+            <div class="section-title" style="color: #854d0e; border-bottom: 2px solid #fde68a;">HuggingFace Daily Papers</div>
+            {% for paper in huggingface %}
+            <div class="card category-hf" style="border: 1px solid #e1e8ed; border-radius: 8px; padding: 16px;">
+                <div class="card-header" style="margin-bottom: 12px; overflow: hidden;">
+                    <div style="display: flex; align-items: center; font-size: 1.1rem; line-height: 1.4; white-space: nowrap; overflow: hidden;">
+                        {% if paper.organization_avatar %}
+                        <img src="{{ paper.organization_avatar }}" class="org-avatar" style="width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; margin-right: 8px; vertical-align: middle;" alt="">
+                        {% endif %}
+                        <span style="color: #57606a; font-weight: 400; flex-shrink: 0;">{{ paper.organization_name or (paper.authors[0] if paper.authors else 'Unknown') }}</span>
+                        <span style="color: #57606a; margin: 0 4px; font-weight: 300; flex-shrink: 0;">/</span>
+                        <a href="https://huggingface.co/papers/{{ paper.id }}" style="color: #0284c7; font-weight: 600; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">{{ paper.title }}</a>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.85rem; color: #57606a; margin-bottom: 10px; border-left: 2px solid #f0f0f0; padding-left: 10px;">
+                    {{ paper.authors | join(', ') }}
+                </div>
+
+                <div class="summary" style="font-size: 0.9rem; color: #24292f; line-height: 1.6; margin-bottom: 20px;">
+                    {{ paper.summary | truncate(300) }}
+                </div>
+
+                {{ ai_content_block(paper) }}
+
+                <div class="card-footer">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="badge-hf">🔥 {{ paper.upvotes }} upvotes</span>
+                        {% if paper.github_url %}
+                        <a href="{{ paper.github_url }}" class="hf-btn">
+                            {{ svg_gh_hf | safe }}
+                            <span style="margin-left: 6px;">GitHub</span>
+                            {% if paper.github_stars %}
+                            <span class="hf-star-badge">
+                                {{ svg_star_hf | safe }}
+                                {{ paper.github_stars | format_k }}
+                            </span>
+                            {% endif %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 0.82rem; color: #bfbfbf; font-family: monospace;">
+                        {{ paper.published_at[:10] }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {# --- HF/ARXIV PAPERS --- #}
+            {% if arxiv_papers %}
+            <div class="section-title" style="color: #334155; border-bottom: 2px solid #e2e8f0;">HuggingFace & Arxiv</div>
+            {% for paper in arxiv_papers %}
+            <div class="card category-arxiv">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <a href="{{ paper.id or paper.url }}">{{ paper.title }}</a>
+                    </h3>
+                </div>
+                {% if paper.authors %}
+                <div class="author-list">By: {{ paper.authors | join(', ') }}</div>
+                {% endif %}
+                <div class="summary">{{ paper.summary }}</div>
+                {{ ai_content_block(paper) }}
+                <div class="card-footer">
+                    <div class="footer-meta">
+                        {% if paper.upvotes is defined %}
+                        <span class="stat-item" style="color: #f59e0b; font-weight: bold;">🔥 {{ paper.upvotes }}</span>
+                        {% endif %}
+                        {% if paper.categories %}
+                            {% for cat in paper.categories %}
+                            <span class="tag badge-arxiv">{{ cat }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {# --- OPENROUTER LLMS --- #}
+            {% if openrouter_llms %}
+            <div class="section-title" style="color: #4338ca;">OpenRouter: Latest LLMs</div>
+            {% for model in openrouter_llms %}
+            <div class="card category-or">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <a href="https://openrouter.ai/models/{{ model.canonical_slug }}" style="color: #0284c7;">{{ model.name }}</a>
+                    </h3>
+                    <span class="tag badge-or">{{ model.modality }}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #666; margin-bottom: 8px;">{{ model.canonical_slug }}</div>
+                <div class="summary" style="font-size: 0.88rem; line-height: 1.6; color: #4b5563; margin-bottom: 12px;">{{ model.description }}</div>
+                {{ ai_content_block(model) }}
+                <div class="card-footer">
+                    <div class="footer-meta" style="gap: 8px;">
+                        <span class="stat-item">{{ model.context_length | format_k }} context</span>
+                        <span style="color: #ddd;">|</span>
+                        <span class="stat-item" title="Prompt Pricing">${{ model.prompt_pricing }}/M</span>
+                        <span style="color: #ddd;">|</span>
+                        <span class="stat-item" title="Completion Pricing">${{ model.completion_pricing }}/M</span>
+                    </div>
+                    <div style="font-family: monospace;">{{ model.created[:10] }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {# --- OPENROUTER APPS --- #}
+            {% if openrouter_apps %}
+            <div class="section-title" style="color: #4338ca;">OpenRouter: Trending Apps</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+                {% for app in openrouter_apps %}
+                <div class="card category-or" style="flex: 1 1 250px; margin-bottom: 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <img src="{{ app.avatar_url }}" alt="{{ app.name }}" style="width: 32px; height: 32px; border-radius: 4px;">
+                        <h4 style="margin: 0; font-size: 0.95rem;"><a href="{{ app.app_url }}" style="text-decoration: none; color: #0284c7;">{{ app.name }}</a></h4>
+                    </div>
+                    {% if app.description %}
+                    <div style="font-size: 0.85rem; color: #555; margin-bottom: 5px;">{{ app.description }}</div>
+                    {% endif %}
+                    {{ ai_content_block(app) }}
+                    <div class="card-footer">
+                        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                            {% if app.token_usage %}
+                            <span style="color: #7c3aed;">{{ app.token_usage }} tokens</span>
+                            {% endif %}
+                            {% if app.token_usage and app.growth_rate %}
+                            <span style="color: #d1d5db;">|</span>
+                            {% endif %}
+                            {% if app.growth_rate %}
+                            <span style="color: #059669;">{{ app.growth_rate }} trend</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {# --- PRODUCT HUNT --- #}
+            {% if product_hunt %}
+            <div class="section-title" style="color: #c2410c;">Product Hunt</div>
+            {% for app in product_hunt %}
+            <div class="card category-ph">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    {% if app.avatar_url %}
+                    <img src="{{ app.avatar_url }}" alt="{{ app.name }}" style="width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; background: #f3f4f6; object-fit: cover;">
+                    {% else %}
+                    <div style="width: 32px; height: 32px; border-radius: 10px; background: #f3f4f6; flex-shrink: 0;"></div>
+                    {% endif %}
+                    <div style="display: flex; flex-direction: column; justify-content: center; min-height: 48px; flex: 1; min-width: 0;">
+                        <h4 style="margin: 0; font-size: 1rem; line-height: 1.25; font-weight: 600;"><a href="{{ app.product_hunt_page }}" style="text-decoration: none; color: #0284c7;">{{ app.name }}</a></h4>
+                        <div style="font-size: 0.88rem; color: #6b7280; line-height: 1.25; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ app.tagline }}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                    {% for tag in app.tags %}
+                    <span class="tag badge-ph">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+
+                {% if app.comments %}
+                <div class="comment-snippet">
+                    <div style="font-style: italic;">
+                        "{{ app.comments[0].comment }}"
+                    </div>
+                    {% if app.comments[0].reply %}
+                    <div class="comment-reply">
+                        {{ app.comments[0].reply }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {{ ai_content_block(app) }}
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f0f0f0; padding-top: 12px; margin-top: 15px;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <span style="font-size: 0.85rem; color: #0369a1; font-weight: 600; display: flex; align-items: center;">
+                            {{ svg_vote_solid | safe }} {{ app.votesCount }}
+                        </span>
+                        <span style="font-size: 0.85rem; color: #64748b; display: flex; align-items: center;">
+                            {{ svg_comment_solid | safe }} {{ app.commentsCount }}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: #94a3b8; font-family: monospace;">
+                        {{ app.launched_at | format_timestamp if app.launched_at else '' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+
+            {# --- HACKER NEWS --- #}
+            {% if hacker_news %}
+            <div class="section-title" style="color: #b45309;">Hacker News</div>
+            {% for story in hacker_news %}
+            <div class="card category-hn">
+                <h3 class="card-title">
+                    <a href="{{ story.url or story.id }}" style="color: #0284c7;">{{ story.title }}</a>
+                </h3>
+                {% if story.story_text %}
+                <div style="font-size: 0.88rem; color: #4b5563; margin-top: 8px; line-height: 1.5; background: #fffdf5; padding: 12px; border-radius: 8px; border-left: 2px solid #fcd34d; border-right: 1px dashed #fef3c7; border-top: 1px dashed #fef3c7; border-bottom: 1px dashed #fef3c7; margin-bottom: 10px;">
+                    {{ story.story_text }}
+                </div>
+                {% endif %}
+                {% if story.comments %}
+                <div class="comment-snippet">
+                    <div style="font-style: italic;">
+                        "{{ story.comments[0].comment }}"
+                    </div>
+                    {% if story.comments[0].reply %}
+                    <div class="comment-reply">
+                        {{ story.comments[0].reply }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {{ ai_content_block(story) or '' }}
+
+                <div class="card-footer">
+                    <div class="footer-meta">
+                        <span class="stat-item">Points: {{ story.points }}</span>
+                        <span class="stat-item">Comments: {{ story.num_comments }}</span>
+                        <span class="stat-item">By: {{ story.author }}</span>
+                    </div>
+                    <div style="font-family: monospace;">{{ story.created_at | format_timestamp }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>Generated with ❤️ by Daily Info Assistant</p>
+            <p>You are receiving this because you subscribed to daily tech summaries.</p>
+        </div>
+    </div>
+</body>
+</html>
