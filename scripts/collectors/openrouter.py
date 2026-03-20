@@ -47,21 +47,21 @@ OR_PARSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger.info(f"Loaded OpenRouter configurations: API_DIR={OR_API_DATA_DIR}, PARSED_DIR={OR_PARSED_DATA_DIR}")
 
-def openrouter_health_check() -> bool:
+def openrouter_health_check(proxies: dict = None) -> bool:
     """
     Check if the OpenRouter API is responsive.
     
     Platform: OpenRouter
     Method: API Health Check
     Args:
-        None
+        proxies (dict, optional): Proxy configuration for the request.
     Returns:
         bool: True if the API is responsive, False otherwise.
     Docs URL: https://openrouter.ai/api/v1/models
     """
     try:
-        logger.info(f"Performing OpenRouter health check on {OPENROUTER_API_BASE_URL}")
-        response = requests.get(OPENROUTER_API_BASE_URL, timeout=30)
+        logger.info(f"Performing OpenRouter health check on {OPENROUTER_API_BASE_URL}{' (using proxy)' if proxies else ''}")
+        response = requests.get(OPENROUTER_API_BASE_URL, timeout=30, proxies=proxies)
         if response.status_code == 200:
             logger.info("OpenRouter health check passed.")
             return True
@@ -72,21 +72,21 @@ def openrouter_health_check() -> bool:
         logger.error(f"OpenRouter health check failed with exception: {e}")
         return False
 
-def openrouter_fetch_data() -> str:
+def openrouter_fetch_data(proxies: dict = None) -> str:
     """
     Fetch data from OpenRouter Models API.
     
     Platform: OpenRouter
     Method: Models API Fetch
     Args:
-        None
+        proxies (dict, optional): Proxy configuration for the request.
     Returns:
         str: Absolute path to the saved raw JSON API response file.
     API Return Data: JSON payload containing a 'data' array. Each item is a model info dict.
     Docs URL: https://openrouter.ai/api/v1/models
     """
-    logger.info("Fetching OpenRouter models data...")
-    response = requests.get(OPENROUTER_API_BASE_URL, timeout=60)
+    logger.info(f"Fetching OpenRouter models data...{' (using proxy)' if proxies else ''}")
+    response = requests.get(OPENROUTER_API_BASE_URL, timeout=60, proxies=proxies)
     response.raise_for_status()
     
     data = response.json()
@@ -207,13 +207,13 @@ def openrouter_generate_markdown(data: list) -> str:
     logger.info(f"Successfully generated OpenRouter markdown at {output_path}")
     return str(output_path.absolute())
 
-def openrouter_apps_fetch_data() -> str:
+def openrouter_apps_fetch_data(proxies: dict = None) -> str:
     """
     Fetch raw HTML from OpenRouter Apps page.
     """
     url = "https://openrouter.ai/apps"
-    logger.info("Fetching OpenRouter apps data...")
-    response = requests.get(url, timeout=30)
+    logger.info(f"Fetching OpenRouter apps data...{' (using proxy)' if proxies else ''}")
+    response = requests.get(url, timeout=30, proxies=proxies)
     response.raise_for_status()
     
     timestamp = time.strftime('%Y%m%d_%H%M%S')
@@ -361,7 +361,7 @@ def openrouter_apps_generate_markdown(data: dict) -> str:
     ]
     
     lines.append("## Trending\n")
-    lines.append("头像 | 应用名称 | 增长比率")
+    lines.append("Avatar | App Name | Growth Rate")
     lines.append("--- | --- | ---")
     if data.get("trending"):
         for app in data["trending"]:
@@ -379,8 +379,8 @@ def openrouter_apps_generate_markdown(data: dict) -> str:
         lines.append("N/A | N/A | N/A")
     
     lines.append("\n## Global ranking\n")
-    lines.append("排进前20的\n")
-    lines.append("头像 | 应用名称 | 简介 | 标签 | Tokens调用量")
+    lines.append("Top 20 Ranking\n")
+    lines.append("Avatar | App Name | Description | Tags | Token Usage")
     lines.append("--- | --- | --- | --- | ---")
     
     for app in data.get("global_ranking", []):

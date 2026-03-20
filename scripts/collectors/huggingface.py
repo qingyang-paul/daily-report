@@ -46,19 +46,27 @@ HF_PARSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger.info(f"Loaded Huggingface configurations: API_DIR={HF_API_DATA_DIR}, PARSED_DIR={HF_PARSED_DATA_DIR}")
 
-def huggingface_health_check() -> bool:
+def huggingface_health_check(proxies: dict = None) -> bool:
     """
     Perform a health check on the Huggingface Hub papers API.
     
     Platform: Huggingface
     Method: Daily Papers API Health Check
     Args:
-        None
+        proxies (dict, optional): Proxy configuration.
     Returns:
         bool: True if connection is successful, False otherwise.
     """
+    import os
+    old_http = os.environ.get("HTTP_PROXY")
+    old_https = os.environ.get("HTTPS_PROXY")
+    
     try:
-        logger.info("Performing Huggingface health check...")
+        if proxies:
+            os.environ["HTTP_PROXY"] = proxies.get("http", "")
+            os.environ["HTTPS_PROXY"] = proxies.get("https", "")
+            
+        logger.info(f"Performing Huggingface health check...{' (using proxy)' if proxies else ''}")
         now = datetime.utcnow()
         date_str = now.strftime("%Y-%m-%d")
         papers = list(list_daily_papers(date=date_str))
@@ -67,8 +75,14 @@ def huggingface_health_check() -> bool:
     except Exception as e:
         logger.error(f"Huggingface health check failed: {e}")
         return False
+    finally:
+        if proxies:
+            if old_http is not None: os.environ["HTTP_PROXY"] = old_http
+            else: os.environ.pop("HTTP_PROXY", None)
+            if old_https is not None: os.environ["HTTPS_PROXY"] = old_https
+            else: os.environ.pop("HTTPS_PROXY", None)
 
-def huggingface_fetch_papers(timeframe: str) -> str:
+def huggingface_fetch_papers(timeframe: str, proxies: dict = None) -> str:
     """
     Fetch listed daily papers from Huggingface over the specified timeframe.
     
@@ -76,6 +90,7 @@ def huggingface_fetch_papers(timeframe: str) -> str:
     Method: API Fetch Papers
     Args:
         timeframe (str): The time duration ('daily', 'weekly', 'monthly').
+        proxies (dict, optional): Proxy configuration.
     Returns:
         str: Absolute path to the generated JSON raw data file.
     API Return Data: JSON array containing paper attributes (title, abstract, link, etc.).
@@ -91,30 +106,46 @@ def huggingface_fetch_papers(timeframe: str) -> str:
     elif timeframe == "monthly":
         days = 30
         
-    logger.info(f"Fetching {timeframe} Huggingface papers ({days} days)")
+    logger.info(f"Fetching {timeframe} Huggingface papers ({days} days){' (using proxy)' if proxies else ''}")
+    
+    import os
+    old_http = os.environ.get("HTTP_PROXY")
+    old_https = os.environ.get("HTTPS_PROXY")
     
     raw_results = []
-    for i in range(days):
-        date_str = (now - timedelta(days=i)).strftime("%Y-%m-%d")
-        try:
-            papers = list(list_daily_papers(date=date_str))
-            for p in papers:
-                raw_dict = {}
-                for k, v in vars(p).items():
-                    if not k.startswith('_'):
-                        # Handle potential non-serializable like datetime or PaperAuthor
-                        if isinstance(v, datetime):
-                            raw_dict[k] = v.isoformat()
-                        elif hasattr(v, '__dict__'):
-                            raw_dict[k] = vars(v)
-                        elif isinstance(v, list) and len(v) > 0 and hasattr(v[0], '__dict__'):
-                            raw_dict[k] = [vars(item) for item in v]
-                        else:
-                            raw_dict[k] = v
-                raw_dict["date"] = date_str
-                raw_results.append(raw_dict)
-        except Exception as e:
-            logger.warning(f"Error fetching Huggingface papers for {date_str}: {e}")
+    try:
+        if proxies:
+            os.environ["HTTP_PROXY"] = proxies.get("http", "")
+            os.environ["HTTPS_PROXY"] = proxies.get("https", "")
+            
+        for i in range(days):
+            date_str = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+            try:
+                papers = list(list_daily_papers(date=date_str))
+                for p in papers:
+                    raw_dict = {}
+                    for k, v in vars(p).items():
+                        if not k.startswith('_'):
+                            if isinstance(v, datetime):
+                                raw_dict[k] = v.isoformat()
+                            elif hasattr(v, '__dict__'):
+                                raw_dict[k] = vars(v)
+                            elif isinstance(v, list) and len(v) > 0 and hasattr(v[0], '__dict__'):
+                                raw_dict[k] = [vars(item) for item in v]
+                            else:
+                                raw_dict[k] = v
+                    raw_dict["date"] = date_str
+                    raw_results.append(raw_dict)
+            except Exception as e:
+                logger.warning(f"Error fetching Huggingface papers for {date_str}: {e}")
+    except Exception as e:
+        logger.error(f"Critical error in huggingface_fetch_papers: {e}")
+    finally:
+        if proxies:
+            if old_http is not None: os.environ["HTTP_PROXY"] = old_http
+            else: os.environ.pop("HTTP_PROXY", None)
+            if old_https is not None: os.environ["HTTPS_PROXY"] = old_https
+            else: os.environ.pop("HTTPS_PROXY", None)
         
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"huggingface_{timeframe}_{timestamp}.json"

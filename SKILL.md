@@ -89,6 +89,9 @@ python scripts/hacker_news.py --timeframe daily
 
 python scripts/health_check.py
 
+> [!TIP]
+> If health checks fail (usually due to network restrictions), try configuring and activating a proxy before running them again. The system will automatically detect and apply the proxy configuration from `.env.local`.
+
 
 ## Proxy Management
 The project supports up to 3 rotating proxies configured via `WEBSHARE_PROXY1/2/3` in `.env.local`.

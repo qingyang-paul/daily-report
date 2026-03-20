@@ -47,20 +47,28 @@ ARXIV_PARSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger.info(f"Loaded Arxiv configurations: API_DIR={ARXIV_API_DATA_DIR}, PARSED_DIR={ARXIV_PARSED_DATA_DIR}")
 
-def arxiv_health_check() -> bool:
+def arxiv_health_check(proxies: dict = None) -> bool:
     """
     Check if the arXiv API is responsive.
     
     Platform: arXiv
     Method: Search API Health Check
     Args:
-        None
+        proxies (dict, optional): Proxy configuration.
     Returns:
         bool: True if the arXiv API query is successful and returns results, False otherwise.
     Docs: https://export.arxiv.org/api/query
     """
+    import os
+    old_http = os.environ.get("HTTP_PROXY")
+    old_https = os.environ.get("HTTPS_PROXY")
+    
     try:
-        logger.info("Performing arXiv health check...")
+        if proxies:
+            os.environ["HTTP_PROXY"] = proxies.get("http", "")
+            os.environ["HTTPS_PROXY"] = proxies.get("https", "")
+            
+        logger.info(f"Performing arXiv health check...{' (using proxy)' if proxies else ''}")
         client = arxiv.Client()
         search = arxiv.Search(
             query="cat:cs.AI",
@@ -75,8 +83,14 @@ def arxiv_health_check() -> bool:
     except Exception as e:
         logger.error(f"arXiv health check failed: {e}")
         return False
+    finally:
+        if proxies:
+            if old_http is not None: os.environ["HTTP_PROXY"] = old_http
+            else: os.environ.pop("HTTP_PROXY", None)
+            if old_https is not None: os.environ["HTTPS_PROXY"] = old_https
+            else: os.environ.pop("HTTPS_PROXY", None)
 
-def arxiv_fetch_papers(timeframe: str) -> str:
+def arxiv_fetch_papers(timeframe: str, proxies: dict = None) -> str:
     """
     Fetch papers from the arXiv API for a specified timeframe and save the raw JSON response.
     
@@ -84,10 +98,9 @@ def arxiv_fetch_papers(timeframe: str) -> str:
     Method: Search API Fetch
     Args:
         timeframe (str): The time window to fetch papers for. Must be 'daily', 'weekly', or 'monthly'.
+        proxies (dict, optional): Proxy configuration.
     Returns:
         str: The absolute path to the saved raw JSON file containing the API response.
-    API Return Data: A JSON array of paper objects containing exhaustive fields like entry_id, updated, published, title, authors, summary, comment, journal_ref, doi, primary_category, categories, links, pdf_url, and _raw.
-    Docs URL: https://export.arxiv.org/api/query
     """
     if timeframe not in ARXIV_PERIODS:
         raise ValueError(f"Invalid timeframe: {timeframe}. Must be one of {ARXIV_PERIODS}")
@@ -106,17 +119,46 @@ def arxiv_fetch_papers(timeframe: str) -> str:
     cat_query = " OR ".join([f"cat:{c}" for c in ARXIV_CATEGORIES])
     full_query = f"({cat_query}) AND submittedDate:[{start_str} TO {end_str}]"
     
-    logger.info(f"Fetching {timeframe} arXiv papers with query: {full_query}")
+    logger.info(f"Fetching {timeframe} arXiv papers with query: {full_query}{' (using proxy)' if proxies else ''}")
     
-    client = arxiv.Client()
-    search = arxiv.Search(
-        query=full_query,
-        max_results=100,
-        sort_by=arxiv.SortCriterion.SubmittedDate
-    )
+    import os
+    old_http = os.environ.get("HTTP_PROXY")
+    old_https = os.environ.get("HTTPS_PROXY")
     
-    raw_results = []
-    for r in client.results(search):
+    try:
+        if proxies:
+            os.environ["HTTP_PROXY"] = proxies.get("http", "")
+            os.environ["HTTPS_PROXY"] = proxies.get("https", "")
+
+        client = arxiv.Client()
+        search = arxiv.Search(
+            query=full_query,
+            max_results=100,
+            sort_by=arxiv.SortCriterion.SubmittedDate
+        )
+        
+        raw_results = []
+        for r in client.results(search):
+            raw_dict = {}
+            for k, v in vars(r).items():
+                if k.startswith('_'):
+                    continue
+                if isinstance(v, datetime):
+                    raw_dict[k] = v.isoformat()
+                elif isinstance(v, list) and len(v) > 0 and hasattr(v[0], '__dict__'):
+                    raw_dict[k] = [vars(item) for item in v]
+                else:
+                    raw_dict[k] = v
+            raw_results.append(raw_dict)
+    except Exception as e:
+        logger.error(f"Error fetching arXiv papers: {e}")
+        raw_results = []
+    finally:
+        if proxies:
+            if old_http is not None: os.environ["HTTP_PROXY"] = old_http
+            else: os.environ.pop("HTTP_PROXY", None)
+            if old_https is not None: os.environ["HTTPS_PROXY"] = old_https
+            else: os.environ.pop("HTTPS_PROXY", None)
         raw_dict = {}
         for k, v in vars(r).items():
             if k.startswith('_'):

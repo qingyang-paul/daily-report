@@ -57,7 +57,7 @@ query ($postedAfter: DateTime, $postedBefore: DateTime) {
       node {
         name
         tagline
-        createdAt      # 【新增】Post 的发布时间
+        createdAt      # [NEW] Post creation time
         votesCount
         commentsCount
         url
@@ -72,13 +72,13 @@ query ($postedAfter: DateTime, $postedBefore: DateTime) {
             }
           }
         }
-        # 查询前 1 条评论，带 1 条回复
+        # Fetch the first comment with 1 reply
         comments(first: 1) {
           edges {
             node {
               body
               votesCount
-              createdAt  # 【新增】评论的发布时间
+              createdAt  # [NEW] Comment creation time
               user {
                 name
               }
@@ -98,9 +98,11 @@ query ($postedAfter: DateTime, $postedBefore: DateTime) {
 }
 """
 
-def product_hunt_health_check() -> bool:
+def product_hunt_health_check(proxies: dict = None) -> bool:
     """
     Perform a health check by sending a simple GraphQL query to Product Hunt.
+    Args:
+        proxies (dict, optional): Proxy configuration for the request.
     """
     if not PRODUCT_HUNT_TOKEN:
         logger.error("Product_Hunt_Developer_Token is not set.")
@@ -123,8 +125,8 @@ def product_hunt_health_check() -> bool:
     }
     
     try:
-        logger.info("Performing Product Hunt health check...")
-        response = requests.post(PRODUCT_HUNT_API_URL, json={"query": query}, headers=headers, timeout=10)
+        logger.info(f"Performing Product Hunt health check...{' (using proxy)' if proxies else ''}")
+        response = requests.post(PRODUCT_HUNT_API_URL, json={"query": query}, headers=headers, timeout=10, proxies=proxies)
         response.raise_for_status()
         data = response.json()
         if "errors" in data:
@@ -136,9 +138,12 @@ def product_hunt_health_check() -> bool:
         logger.error(f"Product Hunt health check failed: {e}")
         return False
 
-def product_hunt_fetch_data(timeframe: str) -> str:
+def product_hunt_fetch_data(timeframe: str, proxies: dict = None) -> str:
     """
     Fetch posts for a given timeframe and save as raw JSON.
+    Args:
+        timeframe (str): The time duration ('daily', 'weekly', 'monthly').
+        proxies (dict, optional): Proxy configuration for the request.
     """
     if timeframe not in PRODUCT_HUNT_PERIODS:
         raise ValueError(f"Invalid timeframe: {timeframe}. Must be one of {PRODUCT_HUNT_PERIODS}")
@@ -155,7 +160,7 @@ def product_hunt_fetch_data(timeframe: str) -> str:
         posted_after = now - timedelta(days=30)
     
     posted_after_str = posted_after.strftime("%Y-%m-%dT%H:%M:%SZ")
-    logger.info(f"Fetching Product Hunt {timeframe} posts since {posted_after_str}...")
+    logger.info(f"Fetching Product Hunt {timeframe} posts since {posted_after_str}...{' (using proxy)' if proxies else ''}")
     
     headers = {
         "Authorization": f"Bearer {PRODUCT_HUNT_TOKEN}",
@@ -165,7 +170,7 @@ def product_hunt_fetch_data(timeframe: str) -> str:
         "postedAfter": posted_after_str
     }
     
-    response = requests.post(PRODUCT_HUNT_API_URL, json={"query": PRODUCT_HUNT_POSTS_QUERY, "variables": variables}, headers=headers)
+    response = requests.post(PRODUCT_HUNT_API_URL, json={"query": PRODUCT_HUNT_POSTS_QUERY, "variables": variables}, headers=headers, proxies=proxies)
     response.raise_for_status()
     
     data = response.json()

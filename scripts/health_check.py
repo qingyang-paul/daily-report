@@ -71,14 +71,38 @@ def main():
         logger.error(f"Failed to import collectors: {e}")
         sys.exit(1)
 
-    results = {
-        "arXiv": arxiv_health_check(),
-        "GitHub Trending": github_trending_health_check(),
-        "Hacker News": hacker_news_health_check(),
-        "Huggingface": huggingface_health_check(),
-        "Product Hunt": product_hunt_health_check(),
-        "OpenRouter": openrouter_health_check()
+    services = {
+        "arXiv": collectors.arxiv.arxiv_health_check,
+        "GitHub Trending": collectors.github.github_trending_health_check,
+        "Hacker News": collectors.hacker_news.hacker_news_health_check,
+        "Huggingface": collectors.huggingface.huggingface_health_check,
+        "Product Hunt": collectors.product_hunt.product_hunt_health_check,
+        "OpenRouter": collectors.openrouter.openrouter_health_check
     }
+    
+    results = {}
+    for name, check_func in services.items():
+        logger.info(f"Checking {name}...")
+        passed = check_func()
+        
+        if not passed:
+            logger.warning(f"{name} direct check failed. Retrying with any configured proxies...")
+            # Try each configured proxy from WEBSHARE_PROXY1, 2, 3
+            for i in range(1, 4):
+                proxy = config.get_proxy(i)
+                if not proxy:
+                    continue
+                
+                logger.info(f"Retrying {name} with Proxy {i}...")
+                try:
+                    passed = check_func(proxies=proxy)
+                    if passed:
+                        logger.info(f"{name} PASSED using Proxy {i}.")
+                        break
+                except Exception as e:
+                    logger.error(f"{name} retry with Proxy {i} errored: {e}")
+        
+        results[name] = passed
     
     logger.info("\n=== Health Check Results ===")
     all_passed = True

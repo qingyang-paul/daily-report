@@ -52,22 +52,22 @@ GITHUB_TRENDING_PARSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger.info(f"Loaded GitHub Trending configurations: API_DIR={GITHUB_TRENDING_API_DATA_DIR}, PARSED_DIR={GITHUB_TRENDING_PARSED_DATA_DIR}")
 
-def github_trending_health_check() -> bool:
+def github_trending_health_check(proxies: dict = None) -> bool:
     """
     Check if the GitHub Trending page is accessible.
     
     Platform: GitHub Trending
     Method: HTTP GET Health Check
     Args:
-        None
+        proxies (dict, optional): Proxy configuration for the request.
     Returns:
         bool: True if accessible (responses with status code 200), False otherwise.
     Docs URL: https://github.com/trending/python
     """
     try:
-        logger.info(f"Performing GitHub Trending health check on {GITHUB_TRENDING_BASE_URL}")
+        logger.info(f"Performing GitHub Trending health check on {GITHUB_TRENDING_BASE_URL}{' (using proxy)' if proxies else ''}")
         # Identify the specific URL for health check
-        response = requests.get(GITHUB_TRENDING_BASE_URL, headers=GITHUB_TRENDING_DEFAULT_HEADERS, timeout=10)
+        response = requests.get(GITHUB_TRENDING_BASE_URL, headers=GITHUB_TRENDING_DEFAULT_HEADERS, timeout=10, proxies=proxies)
         if response.status_code == 200:
             logger.info("GitHub Trending health check passed.")
             return True
@@ -78,7 +78,7 @@ def github_trending_health_check() -> bool:
         logger.error(f"GitHub Trending health check failed with exception: {e}")
         return False
 
-def github_trending_fetch_html(since: str = "daily") -> Path:
+def github_trending_fetch_html(since: str = "daily", proxies: dict = None) -> Path:
     """
     Fetch trending repos from GitHub and save raw HTML.
     
@@ -86,6 +86,7 @@ def github_trending_fetch_html(since: str = "daily") -> Path:
     Method: HTTP GET Fetch HTML
     Args:
         since (str): The timeframe to fetch trending repos. Options: 'daily', 'weekly', or 'monthly'.
+        proxies (dict, optional): Proxy configuration for the request.
     Returns:
         Path: Path to the saved HTML file.
     API Return Data: Raw HTML string of the GitHub Trending page containing elements like repository name, description, primary language, total stars, total forks, contributors, and trend count.
@@ -95,9 +96,9 @@ def github_trending_fetch_html(since: str = "daily") -> Path:
         raise ValueError(f"Invalid 'since' option: {since}. Must be one of {GITHUB_TRENDING_SINCE_OPTIONS}")
         
     url = f"{GITHUB_TRENDING_BASE_URL}?since={since}"
-    logger.info(f"Fetching GitHub trending data for {since} from {url}")
+    logger.info(f"Fetching GitHub trending data for {since} from {url}{' (using proxy)' if proxies else ''}")
     
-    response = requests.get(url, headers=GITHUB_TRENDING_DEFAULT_HEADERS, timeout=15)
+    response = requests.get(url, headers=GITHUB_TRENDING_DEFAULT_HEADERS, timeout=15, proxies=proxies)
     response.raise_for_status()
     
     output_file = GITHUB_TRENDING_API_DATA_DIR / f"trending_{since}.html"

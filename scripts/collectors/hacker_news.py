@@ -52,22 +52,22 @@ HN_PARSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger.info(f"Loaded Hacker News configurations: API_DIR={HN_API_DATA_DIR}, PARSED_DIR={HN_PARSED_DATA_DIR}")
 
-def hacker_news_health_check() -> bool:
+def hacker_news_health_check(proxies: dict = None) -> bool:
     """
     Check if the Hacker News Algolia API is responsive.
     
     Platform: Hacker News
     Method: Algolia Search API Health Check
     Args:
-        None
+        proxies (dict, optional): Proxy configuration for the request.
     Returns:
         bool: True if the API is responsive, False otherwise.
     Docs URL: https://hn.algolia.com/api/v1/search
     """
     try:
-        logger.info(f"Performing Hacker News health check on {HACKER_NEWS_API_BASE_URL}")
+        logger.info(f"Performing Hacker News health check on {HACKER_NEWS_API_BASE_URL}{' (using proxy)' if proxies else ''}")
         params = {"tags": "story", "hitsPerPage": 1}
-        response = requests.get(HACKER_NEWS_API_BASE_URL, params=params, timeout=10)
+        response = requests.get(HACKER_NEWS_API_BASE_URL, params=params, timeout=10, proxies=proxies)
         if response.status_code == 200:
             logger.info("Hacker News health check passed.")
             return True
@@ -78,7 +78,7 @@ def hacker_news_health_check() -> bool:
         logger.error(f"Hacker News health check failed with exception: {e}")
         return False
 
-def hacker_news_fetch_data(timeframe: str = "daily") -> str:
+def hacker_news_fetch_data(timeframe: str = "daily", proxies: dict = None) -> str:
     """
     Fetch data from Hacker News Algolia API based on timeframe.
     
@@ -86,6 +86,7 @@ def hacker_news_fetch_data(timeframe: str = "daily") -> str:
     Method: Algolia Search API Fetch
     Args:
         timeframe (str): Time window to fetch stories for. Options: 'daily', 'weekly', or 'monthly'.
+        proxies (dict, optional): Proxy configuration for the request.
     Returns:
         str: Absolute path to the saved raw JSON API response file.
     API Return Data: JSON payload containing a 'hits' array. Each hit represents a story with fields like objectID, story_id, title, url, author, points, num_comments, created_at, created_at_i.
@@ -101,8 +102,8 @@ def hacker_news_fetch_data(timeframe: str = "daily") -> str:
         "hitsPerPage": 50 # Fetch top 50
     }
     
-    logger.info(f"Fetching {timeframe} Hacker News data from Algolia API...")
-    response = requests.get(HACKER_NEWS_API_BASE_URL, params=params, timeout=30)
+    logger.info(f"Fetching {timeframe} Hacker News data from Algolia API...{' (using proxy)' if proxies else ''}")
+    response = requests.get(HACKER_NEWS_API_BASE_URL, params=params, timeout=30, proxies=proxies)
     response.raise_for_status()
     data = response.json()
     
@@ -111,7 +112,7 @@ def hacker_news_fetch_data(timeframe: str = "daily") -> str:
         object_id = hit.get("objectID")
         if object_id:
             try:
-                item_resp = requests.get(f"https://hn.algolia.com/api/v1/items/{object_id}", timeout=10)
+                item_resp = requests.get(f"https://hn.algolia.com/api/v1/items/{object_id}", timeout=10, proxies=proxies)
                 if item_resp.status_code == 200:
                     hit["item_details"] = item_resp.json()
             except Exception as e:
