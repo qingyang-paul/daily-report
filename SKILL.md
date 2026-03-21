@@ -36,12 +36,13 @@ To produce a curated daily report that synthesizes data from global tech sources
 - Verify that the workspace is correctly configured.
 - Ensure all required API keys and path constants are set in `.env.local` (located in the project root).
 - Ensure `scripts/core/config.py` is operational for unified path management.
+- **Environment Management**: Use `uv` to manage the Python environment and run scripts.
 
 ### 2. Data Collection & Transformation
 
 - Execute scripts within the `scripts/` directory to fetch raw data from all enabled sources.
 - Scripts generate standardized JSON datasets in the workspace's designated data directories.
-- **Primary Tool**: `python scripts/fetch_all.py` (Orchestrates the full fetch-and-parse sequence).
+- **Primary Tool**: `uv run python scripts/fetch_all.py` (Orchestrates the full fetch-and-parse sequence).
 
 ### 3. AI Based Content Enrichment
 
@@ -65,8 +66,8 @@ To produce a curated daily report that synthesizes data from global tech sources
 
 Before proceeding to overview generation or final reporting, the Agent must verify the integrity of the AI-enhanced data.
 
-- **Integrity Check**: Run `scripts/core/validator.py` (or ensure the logic is invoked) to confirm that no `ai_summary`, `ai_keywords`, or `SectionOverview` fields are empty.
-- **Mandatory**: Email generation via `scripts/email_generator.py` will automatically abort if this validation fails.
+- **Integrity Check**: Run `uv run python scripts/core/validator.py` (or ensure the logic is invoked) to confirm that no `ai_summary`, `ai_keywords`, or `SectionOverview` fields are empty.
+- **Mandatory**: Email generation via `uv run python scripts/email_generator.py` will automatically abort if this validation fails.
 
 ### 5. Multi-Section Overview Generation
 
@@ -79,30 +80,30 @@ After enriching all individual items, the pipeline generates a high-level summar
 
 ### 6. Report Generation & Email Dispatch
 
-- **Data Preparation**: `scripts/email_generator.py` (via `prepare_email_data`) automatically loads `daily_overview.json` from the `overviews/` directory and passes it to the Jinja2 template.
-- **Rendering**: Invoke `scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.
-- **PDF Conversion**: Use `scripts/pdf_generator.py` to convert the HTML report into a PDF for archiving and attachment.
-- **Dispatch**: Send the final report via `scripts/email_sender.py`, which automatically includes the PDF as an attachment.
+- **Data Preparation**: `uv run python scripts/email_generator.py` (via `prepare_email_data`) automatically loads `daily_overview.json` from the `overviews/` directory and passes it to the Jinja2 template.
+- **Rendering**: Invoke `uv run python scripts/email_generator.py` to synthesize the enriched data and section overviews into a premium HTML report.
+- **PDF Conversion**: Use `uv run python scripts/pdf_generator.py` to convert the HTML report into a PDF for archiving and attachment.
+- **Dispatch**: Send the final report via `uv run python scripts/email_sender.py`, which automatically includes the PDF as an attachment.
 
 ## Usage Examples
 
 ```bash
 # Full pipeline sequence
-python scripts/fetch_all.py
+uv run python scripts/fetch_all.py
 # (Enrichment step here)
-python scripts/email_generator.py
-python scripts/pdf_generator.py
-python scripts/email_sender.py
+uv run python scripts/email_generator.py
+uv run python scripts/pdf_generator.py
+uv run python scripts/email_sender.py
 ```
 
 # Individual section refresh
 
-python scripts/github_trending.py --since daily
-python scripts/hacker_news.py --timeframe daily
+uv run python scripts/github_trending.py --since daily
+uv run python scripts/hacker_news.py --timeframe daily
 
 # Verify system health
 
-python scripts/health_check.py
+uv run python scripts/health_check.py
 
 > [!TIP]
 > If health checks fail (usually due to network restrictions), try configuring and activating a proxy before running them again. The system will automatically detect and apply the proxy configuration from `.env.local`.
@@ -116,7 +117,7 @@ The project supports up to 3 rotating proxies configured via `WEBSHARE_PROXY1/2/
 To set proxy environment variables for the current shell session:
 
 ```bash
-eval $(python scripts/set_proxy.py 1)  # Use proxy 1, 2, or 3
+eval $(uv run python scripts/set_proxy.py 1)  # Use proxy 1, 2, or 3
 ```
 
 ### Script Usage
